@@ -1,0 +1,95 @@
+{
+  /* **************************************************************************
+   *  SOGo configuration file (OpenStep plist format — the curly braces are
+   *  mandatory; C-style comments are supported).
+   *
+   *  This is a starting point for a containerised deployment in which ALL
+   *  dependencies (database, memcached, IMAP/SMTP/LDAP) are external.
+   *
+   *  The full parameter reference is the "SOGo Installation and
+   *  Configuration Guide": https://www.sogo.nu/support.html#/documentation
+   *
+   *  NOTE: do NOT set WOPort / WOWorkersCount here — the container
+   *  entrypoint controls them (SOGO_WORKERS environment variable; the
+   *  internal sogod port is fixed at 127.0.0.1:20000).
+   ************************************************************************** */
+
+  /* ---- Database (postgresql:// or mysql://) — REQUIRED ------------------
+   * SOGo creates its schema lazily on first start; no SQL scripts need to
+   * be run manually. Adjust host/credentials to your external database. */
+  SOGoProfileURL          = "postgresql://sogo:change-me@db:5432/sogo/sogo_user_profile";
+  OCSFolderInfoURL        = "postgresql://sogo:change-me@db:5432/sogo/sogo_folder_info";
+  OCSSessionsFolderURL    = "postgresql://sogo:change-me@db:5432/sogo/sogo_sessions_folder";
+  OCSCacheFolderURL       = "postgresql://sogo:change-me@db:5432/sogo/sogo_cache_folder";
+  OCSStoreURL             = "postgresql://sogo:change-me@db:5432/sogo/sogo_store";
+  OCSAclURL               = "postgresql://sogo:change-me@db:5432/sogo/sogo_acl";
+  OCSEMailAlarmsFolderURL = "postgresql://sogo:change-me@db:5432/sogo/sogo_alarms_folder";
+
+  /* ---- Caching: EXTERNAL memcached — strongly recommended --------------- */
+  SOGoMemcachedHost = "memcached:11211";
+
+  /* ---- Mail (external IMAP/SMTP servers) -------------------------------- */
+  SOGoMailingMechanism = "smtp";
+  SOGoSMTPServer       = "smtp://smtp.example.com:587";
+  SOGoIMAPServer       = "imap://imap.example.com:143/";
+  /* For IMAP over TLS use e.g.:
+   *   SOGoIMAPServer = "imaps://imap.example.com:993/?tls=YES";
+   */
+  SOGoMailDomain       = "example.com";
+  SOGoDraftsFolderName = Drafts;
+  SOGoSentFolderName   = Sent;
+  SOGoTrashFolderName  = Trash;
+  SOGoJunkFolderName   = Junk;
+
+  SOGoVacationEnabled      = YES;
+  SOGoForwardEnabled       = YES;
+  SOGoSieveScriptsEnabled  = NO;
+  /* Needed for vacation/forwarding (sieve) support:
+   *   SOGoSieveServer = "sieve://imap.example.com:4190";
+   */
+
+  /* ---- General ----------------------------------------------------------- */
+  SOGoLanguage             = English;
+  SOGoTimeZone             = UTC;
+  SOGoPageTitle            = "SOGo";
+  SOGoPasswordChangeEnabled = YES;
+
+  /* ---- User sources — choose ONE and adjust it ---------------------------- */
+  /* (without a user source nobody can log in) */
+
+  /* LDAP / Active Directory example: */
+  /*
+  SOGoUserSources = (
+    {
+      type          = ldap;
+      CNFieldName   = cn;
+      UIDFieldName  = uid;
+      IDFieldName   = uid;                 // first field of the DN for direct binds
+      bindFields    = (uid, mail);        // fields usable for indirect binds
+      baseDN        = "ou=users,dc=example,dc=com";
+      bindDN        = "uid=sogo,ou=users,dc=example,dc=com";
+      bindPassword  = change-me;
+      canAuthenticate = YES;
+      displayName   = "Corporate Directory";
+      hostname      = "ldap://ldap.example.com:389";
+      id            = directory;
+      isAddressBook = YES;
+    }
+  );
+  */
+
+  /* SQL example — users kept in a table of the same database: */
+  /*
+  SOGoUserSources = (
+    {
+      type                = sql;
+      id                  = directory;
+      viewURL             = "postgresql://sogo:change-me@db:5432/sogo/sogo_users";
+      canAuthenticate     = YES;
+      isAddressBook       = YES;
+      userPasswordAlgorithm = crypt;       // or e.g. blf-crypt, sha512, plain
+      displayName         = "Users";
+    }
+  );
+  */
+}

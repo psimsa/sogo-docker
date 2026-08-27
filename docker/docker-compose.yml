@@ -1,0 +1,88 @@
+# Sample deployment for the SOGo image.
+#
+# The SOGo container itself contains ONLY the SOGo backend and the web UI
+# (plus the small nginx that serves the static files). The database and
+# memcached run as separate containers here — replace them with your
+# existing infrastructure (managed Postgres, Redis-compatible cache, ...)
+# if you have it; SOGo only needs to reach them over the network.
+#
+# Traefik is expected to run OUTSIDE this compose file, attached to the
+# external "traefik" network (adjust the network name to your setup, or
+# remove the Traefik labels and route traffic with any other reverse proxy
+# — see docker/README.md).
+
+name: sogo
+
+services:
+  sogo:
+    image: ${SOGO_IMAGE:-docker.io/psimsa/sogo:latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        SOGO_UID: ${SOGO_UID:-1000}
+        SOGO_GID: ${SOGO_GID:-1000}
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Etc/UTC}
+      # ActiveSync needs roughly one worker per concurrently syncing device.
+      SOGO_WORKERS: ${SOGO_WORKERS:-8}
+    volumes:
+      # Main SOGo configuration — copy docker/sogo.conf.default to
+      # docker/sogo.conf and adjust it first.
+      - ./sogo.conf:/etc/sogo/sogo.conf:ro
+      # GNUstep defaults and sogo-backup output.
+      - sogo-data:/var/lib/sogo
+    networks:
+      - backend
+      - traefik
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.sogo.rule=Host(`${SOGO_HOST:?set SOGO_HOST in docker/.env}`)"
+      - "traefik.http.routers.sogo.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
+      - "traefik.http.routers.sogo.tls=true"
+      - "traefik.http.routers.sogo.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}"
+      - "traefik.http.services.sogo.loadbalancer.server.port=8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      memcached:
+        condition: service_started
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sogo
+      POSTGRES_USER: sogo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in docker/.env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sogo -d sogo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  memcached:
+    image: memcached:1.6-alpine
+    restart: unless-stopped
+    # -I 16m raises the per-item size limit; SOGo can cache larger objects
+    # than memcached's default 1 MB.
+    command: ["-m", "${MEMCACHED_MEMORY:-64}", "-I", "16m"]
+    networks:
+      - backend
+
+networks:
+  backend:
+  traefik:
+    external: true
+
+volumes:
+  sogo-data:
+  db-data:

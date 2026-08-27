@@ -1,0 +1,22 @@
+# SOGo periodic jobs, executed by busybox crond as the "sogo" user.
+#
+# Uncomment the jobs you need. All jobs are wrapped in with-sogo-env, which
+# sets up the GNUstep/SOGo runtime environment. Job output goes to
+# /var/log/sogo/cron.log (`docker exec -it <container> tail -f ...`).
+
+# Email alarms for calendar events — runs every minute.
+# Requires OCSEMailAlarmsFolderURL and SOGoEnableEMailAlarms = YES in
+# sogo.conf.
+#* * * * * /usr/local/bin/with-sogo-env /usr/local/sbin/sogo-ealarms-notify >> /var/log/sogo/cron.log 2>&1
+
+# Session cleanup — runs every minute.
+# Drop sessions with no activity since 60 minutes (adjust to your needs).
+#* * * * * /usr/local/bin/with-sogo-env /usr/local/sbin/sogo-tool expire-sessions 60 >> /var/log/sogo/cron.log 2>&1
+
+# Vacation message expiration — runs every 5 minutes.
+# The credentials file must contain the sieve admin credentials
+# (username:password), mount it at /etc/sogo/sieve.creds.
+#*/5 * * * * /usr/local/bin/with-sogo-env /usr/local/sbin/sogo-tool update-autoreply -p /etc/sogo/sieve.creds >> /var/log/sogo/cron.log 2>&1
+
+# Daily backup (keeps 31 days) — writes to /var/lib/sogo/backups.
+#30 0 * * * /usr/local/bin/with-sogo-env /usr/local/sbin/sogo-backup >> /var/log/sogo/cron.log 2>&1

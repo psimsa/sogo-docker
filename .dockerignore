@@ -1,0 +1,17 @@
+# Keep the build context small — everything here is excluded from the image
+# build context. The SOGo and SOPE source trees themselves ARE required.
+
+# git metadata (large)
+**/.git
+**/.gitmodules
+**/.gitignore
+**/.gitattributes
+
+# CI / docs / dev-only assets
+**/.devcontainer
+**/.github
+**/.tx
+**/node_modules
+
+# docker artifacts
+docker/.env

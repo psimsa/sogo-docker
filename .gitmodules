@@ -1,0 +1,6 @@
+[submodule "sogo"]
+	path = sogo
+	url = https://github.com/Alinto/sogo.git
+[submodule "sope"]
+	path = sope
+	url = https://github.com/Alinto/sope.git
