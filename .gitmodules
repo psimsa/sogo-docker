@@ -1,6 +1,8 @@
 [submodule "sogo"]
 	path = sogo
 	url = https://github.com/Alinto/sogo.git
+	branch = SOGo-5.12.10
 [submodule "sope"]
 	path = sope
 	url = https://github.com/Alinto/sope.git
+	branch = SOPE-5.12.10
