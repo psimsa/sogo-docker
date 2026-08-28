@@ -44,17 +44,17 @@ jobs:
         run: |
           ./build.sh
         env:
-          IMAGE: "ghcr.io/${{ github.repository }}:${{ steps.tags.outputs.primary }}"
+          IMAGE: "ghcr.io/psimsa/sogo:${{ steps.tags.outputs.primary }}"
 
       - name: Add extra tags
         if: steps.tags.outputs.extra != ''
         run: |
-          docker tag "ghcr.io/${{ github.repository }}:${{ steps.tags.outputs.primary }}" "ghcr.io/${{ github.repository }}:${{ steps.tags.outputs.extra }}"
+          docker tag "ghcr.io/psimsa/sogo:${{ steps.tags.outputs.primary }}" "ghcr.io/psimsa/sogo:${{ steps.tags.outputs.extra }}"
 
       - name: Push Docker image
         if: ${{ vars.GHCR_PUSH == 'true' }}
         run: |
-          docker push "ghcr.io/${{ github.repository }}:${{ steps.tags.outputs.primary }}"
+          docker push "ghcr.io/psimsa/sogo:${{ steps.tags.outputs.primary }}"
           if [ -n "${{ steps.tags.outputs.extra }}" ]; then
-            docker push "ghcr.io/${{ github.repository }}:${{ steps.tags.outputs.extra }}"
+            docker push "ghcr.io/psimsa/sogo:${{ steps.tags.outputs.extra }}"
           fi
