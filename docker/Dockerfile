@@ -17,7 +17,7 @@
 # What's deliberately NOT inside (configure via /etc/sogo/sogo.conf):
 #   database, memcached, IMAP/SMTP/LDAP servers, Apache — all external.
 
-ARG UBUNTU_VERSION=24.04
+ARG UBUNTU_VERSION=26.04
 
 ###############################################################################
 # Stage 1 — builder: compile SOPE and SOGo from sources
