@@ -37,6 +37,8 @@ jobs:
           elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
             # On main branch - use run number for uniqueness
             echo "primary=${{ github.run_number }}" >> $GITHUB_OUTPUT
+          else
+            echo "primary=preview-${{ github.run_number }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Build Docker image
